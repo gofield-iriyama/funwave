@@ -58,14 +58,22 @@ function windDirectionScore(spotId: string, windDirectionDeg: number): number {
 }
 
 function statusFromScore(score: number, hardFail: boolean): SurfStatus {
-  // 2段階判定:
+  // 3段階判定:
   // - hardFailなら即 "tough"
-  // - それ以外は総合スコア2.2以上で "go"
+  // - それ以外は総合スコアで3段階に分岐
   if (hardFail) {
     return "tough";
   }
 
-  return score >= 2.3 ? "go" : "tough";
+  if (score >= 2.3) {
+    return "go";
+  }
+
+  if (score >= 1.6) {
+    return "mellow";
+  }
+
+  return "tough";
 }
 
 function reasonFor(level: SurfLevel, slot: SlotAggregate, score: number, hardFail: boolean): string {

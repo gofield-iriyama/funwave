@@ -35,7 +35,7 @@ create table if not exists daily_evaluations (
   spot_id text not null references spots(id) on delete cascade,
   forecast_date date not null,
   level text not null check (level in ('beginner', 'intermediate', 'advanced')),
-  status text not null check (status in ('go', 'tough')),
+  status text not null check (status in ('go', 'mellow', 'tough')),
   reason text not null,
   score double precision not null,
   best_slot_start timestamptz,

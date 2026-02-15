@@ -81,17 +81,18 @@ export async function GET(req: Request) {
 
         await upsertForecastSlots(client, forecastRows);
 
-        const dailyRows = SURF_LEVELS.map((level) => {
-          const daily = evaluateDaily(level, slots);
+      const dailyRows = SURF_LEVELS.map((level) => {
+        const daily = evaluateDaily(level, slots);
+        const storedStatus = daily.status === "mellow" ? "go" : daily.status;
 
-          return {
-            spot_id: spot.id,
-            forecast_date: targetDateJst,
-            level,
-            status: daily.status,
-            reason: daily.reason,
-            score: daily.score,
-            best_slot_start: daily.bestSlotStartIso,
+        return {
+          spot_id: spot.id,
+          forecast_date: targetDateJst,
+          level,
+          status: storedStatus,
+          reason: daily.reason,
+          score: daily.score,
+          best_slot_start: daily.bestSlotStartIso,
             best_slot_end: daily.bestSlotEndIso,
             source: "open-meteo",
             updated_at: nowIso,

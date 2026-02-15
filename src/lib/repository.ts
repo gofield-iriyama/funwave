@@ -32,6 +32,22 @@ interface EvaluationRow {
   updated_at: string;
 }
 
+function displayStatusFromRow(row: EvaluationRow): SurfStatus {
+  if (row.status === "tough") {
+    return "tough";
+  }
+
+  if (row.score >= 2.3) {
+    return "go";
+  }
+
+  if (row.score >= 1.6) {
+    return "mellow";
+  }
+
+  return "tough";
+}
+
 export interface ForecastSlotUpsert {
   spot_id: string;
   forecast_date: string;
@@ -285,7 +301,7 @@ function buildLevelView(
   }
 
   return {
-    decision: row.status,
+    decision: displayStatusFromRow(row),
     reason: row.reason,
     score: row.score,
     bestSlotLabel:

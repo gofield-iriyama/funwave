@@ -12,6 +12,7 @@ interface SurfDashboardProps {
 
 const DECISION_CLASS: Record<SpotDecision, string> = {
   go: "bg-emerald-500 text-emerald-50",
+  mellow: "bg-cyan-400 text-cyan-950",
   tough: "bg-rose-500 text-rose-50",
   unavailable: "bg-slate-400 text-slate-50",
 };
@@ -20,6 +21,9 @@ function decisionText(decision: SpotDecision): string {
   const dict = getDictionary();
   if (decision === "go") {
     return dict.decisionGo;
+  }
+  if (decision === "mellow") {
+    return dict.decisionMellow;
   }
   if (decision === "tough") {
     return dict.decisionTough;

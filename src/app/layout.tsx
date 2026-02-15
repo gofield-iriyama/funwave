@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "四国サーフコンディション",
-  description: "小松・生見・浮鞭の海況を、レベル別に判定するWebアプリ",
+  description: "小松・生見・浮鞭の海況を、ボード別に判定するWebアプリ",
 };
 
 export default function RootLayout({

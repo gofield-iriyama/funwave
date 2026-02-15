@@ -3,7 +3,7 @@
 export const SURF_LEVELS = ["advanced", "intermediate", "beginner"] as const;
 
 export type SurfLevel = (typeof SURF_LEVELS)[number];
-export type SurfStatus = "go" | "tough";
+export type SurfStatus = "go" | "mellow" | "tough";
 export type SpotDecision = SurfStatus | "unavailable";
 
 export interface SpotSeed {

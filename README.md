@@ -1,6 +1,6 @@
 # 四国サーフコンディション (MVP)
 
-小松・生見・浮鞭のコンディションを、初心者/中級者/上級者の3レベルで `行ける / 厳しい` 判定する Next.js アプリです。
+小松・生見・浮鞭のコンディションを、ショート/ミッド/ロングの3ボード種で `ノレる / チル / 見送り` 判定する Next.js アプリです。
 
 ## 技術構成
 
@@ -36,6 +36,10 @@ npm run check:env
 4. Supabaseにスキーマを適用
 
 `supabase/schema.sql` の内容を SQL Editor で実行してください。
+
+既存環境を更新する場合は、追加で以下を実行してください。
+
+- `supabase/migrations/20260215_add_mellow_status.sql`
 
 5. 開発サーバー起動
 
@@ -75,7 +79,7 @@ Vercel Hobbyでは「毎時Cron」が使えないため、GitHub Actionsから�
 
 - `spots`: スポット定義
 - `forecast_slots`: 3時間スロット集計値とスコア
-- `daily_evaluations`: レベル別日次判定
+- `daily_evaluations`: ボード種別日次判定
 - `spot_runtime_status`: 最終成功/失敗状態
 
 ## 仕様メモ
