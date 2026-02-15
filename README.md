@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 四国サーフコンディション (MVP)
 
-## Getting Started
+小松・生見・浮鞭のコンディションを、初心者/中級者/上級者の3レベルで `行ける / 厳しい` 判定する Next.js アプリです。
 
-First, run the development server:
+## 技術構成
+
+- Next.js 16 (App Router / TypeScript)
+- Supabase (データ保存)
+- Open-Meteo (波高・周期・風データ)
+- Vercel Cron (毎時更新)
+
+## セットアップ
+
+1. 依存をインストール
+
+```bash
+npm install
+```
+
+2. 環境変数を設定
+
+`.env.local` を作成して以下を設定してください。
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=...
+SUPABASE_SERVICE_ROLE_KEY=...
+CRON_SECRET=...
+```
+
+3. 設定チェック
+
+```bash
+npm run check:env
+```
+
+4. Supabaseにスキーマを適用
+
+`supabase/schema.sql` の内容を SQL Editor で実行してください。
+
+5. 開発サーバー起動
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. 初回バッチ実行（別ターミナル）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/update
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 毎時バッチ更新
 
-## Learn More
+- エンドポイント: `GET /api/cron/update`
+- ローカル手動実行例:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/update
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Hobbyプラン運用（GitHub Actions）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel Hobbyでは「毎時Cron」が使えないため、GitHub Actionsから毎時実行します。
 
-## Deploy on Vercel
+1. GitHub Secretsを設定
+- `WAVES_CRON_SECRET`: `.env.local` の `CRON_SECRET` と同じ値
+- `WAVES_CRON_URL`: 任意。未設定なら `https://waves-three-theta.vercel.app/api/cron/update` を使用
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. ワークフロー
+- `/Users/gofield/Documents/waves/.github/workflows/hourly-surf-update.yml`
+- スケジュール: 毎時 `:05`（UTC）
+- 手動実行: GitHub Actionsの `Hourly Surf Update` から `Run workflow`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## データモデル
+
+- `spots`: スポット定義
+- `forecast_slots`: 3時間スロット集計値とスコア
+- `daily_evaluations`: レベル別日次判定
+- `spot_runtime_status`: 最終成功/失敗状態
+
+## 仕様メモ
+
+- 判定対象時間: JST 6:00-18:00（3時間単位）
+- 更新頻度: 1時間ごと
+- 失敗時: 最終成功データを表示
+- 鮮度閾値: 6時間
