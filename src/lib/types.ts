@@ -1,4 +1,6 @@
-export const SURF_LEVELS = ["beginner", "intermediate", "advanced"] as const;
+// UI表示順: ショート -> ミッド -> ロング
+// 内部キーは既存DB互換のため維持
+export const SURF_LEVELS = ["advanced", "intermediate", "beginner"] as const;
 
 export type SurfLevel = (typeof SURF_LEVELS)[number];
 export type SurfStatus = "go" | "tough";
@@ -9,6 +11,7 @@ export interface SpotSeed {
   nameJa: string;
   latitude: number;
   longitude: number;
+  offshoreDirectionDeg: number;
   sortOrder: number;
 }
 

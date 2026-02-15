@@ -1,4 +1,4 @@
-import { THRESHOLDS } from "@/lib/constants";
+import { SPOT_SEEDS, THRESHOLDS } from "@/lib/constants";
 import type {
   DailyLevelEvaluation,
   SlotAggregate,
@@ -31,12 +31,41 @@ function upperBoundScore(value: number, max: number, grace: number): number {
   return 0;
 }
 
+function circularDiff(a: number, b: number): number {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+function windDirectionScore(spotId: string, windDirectionDeg: number): number {
+  const spot = SPOT_SEEDS.find((item) => item.id === spotId);
+  const offshoreDirection = spot?.offshoreDirectionDeg ?? 350;
+  const offshoreDiff = circularDiff(windDirectionDeg, offshoreDirection);
+  const onshoreDiff = circularDiff(windDirectionDeg, (offshoreDirection + 180) % 360);
+
+  if (onshoreDiff <= 25) {
+    return 0;
+  }
+  if (offshoreDiff <= 50) {
+    return 1;
+  }
+  if (offshoreDiff <= 80) {
+    return 0.7;
+  }
+  if (offshoreDiff <= 110) {
+    return 0.4;
+  }
+  return 0.2;
+}
+
 function statusFromScore(score: number, hardFail: boolean): SurfStatus {
+  // 2段階判定:
+  // - hardFailなら即 "tough"
+  // - それ以外は総合スコア2.2以上で "go"
   if (hardFail) {
     return "tough";
   }
 
-  return score >= 2 ? "go" : "tough";
+  return score >= 2.2 ? "go" : "tough";
 }
 
 function reasonFor(level: SurfLevel, slot: SlotAggregate, score: number, hardFail: boolean): string {
@@ -44,6 +73,11 @@ function reasonFor(level: SurfLevel, slot: SlotAggregate, score: number, hardFai
 
   if (hardFail && slot.windSpeedMs > threshold.windSpeedMax + threshold.windGrace + 1.5) {
     return "風が強すぎるため厳しいです。";
+  }
+
+  const windDirScore = windDirectionScore(slot.spotId, slot.windDirectionDeg);
+  if (hardFail && windDirScore <= 0.2 && slot.windSpeedMs >= 4.5) {
+    return "オンショア気味で面が崩れやすいです。";
   }
 
   if (hardFail && slot.waveHeightM > threshold.waveHeightMax + threshold.waveGrace + 0.5) {
@@ -66,6 +100,10 @@ function reasonFor(level: SurfLevel, slot: SlotAggregate, score: number, hardFai
     return "風がやや強く面が乱れやすいです。";
   }
 
+  if (windDirScore <= 0.4) {
+    return "風向きが合わず面がまとまりにくいです。";
+  }
+
   return "条件が安定せず厳しめです。";
 }
 
@@ -84,12 +122,15 @@ export function evaluateSlot(level: SurfLevel, slot: SlotAggregate): SlotLevelEv
     threshold.periodMax,
     threshold.periodGrace,
   );
-  const wind = upperBoundScore(slot.windSpeedMs, threshold.windSpeedMax, threshold.windGrace);
+  const windSpeedScore = upperBoundScore(slot.windSpeedMs, threshold.windSpeedMax, threshold.windGrace);
+  const windDirScore = windDirectionScore(slot.spotId, slot.windDirectionDeg);
+  const wind = Number(Math.min(windSpeedScore, windDirScore).toFixed(2));
 
   const score = Number((wave + period + wind).toFixed(2));
   const hardFail =
     slot.windSpeedMs > threshold.windSpeedMax + threshold.windGrace + 1.5 ||
-    slot.waveHeightM > threshold.waveHeightMax + threshold.waveGrace + 0.5;
+    slot.waveHeightM > threshold.waveHeightMax + threshold.waveGrace + 0.5 ||
+    (windDirScore <= 0.2 && slot.windSpeedMs >= 4.5);
 
   return {
     level,

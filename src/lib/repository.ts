@@ -105,6 +105,11 @@ function fallbackData(nowIso = new Date().toISOString()): DashboardData {
   };
 }
 
+function offshoreDirectionForSpot(spotId: string): number {
+  const seed = SPOT_SEEDS.find((spot) => spot.id === spotId);
+  return seed?.offshoreDirectionDeg ?? 350;
+}
+
 export async function seedSpots(client: SupabaseClient): Promise<void> {
   const { error } = await client.from("spots").upsert(
     SPOT_SEEDS.map((spot) => ({
@@ -143,6 +148,7 @@ export async function getActiveSpots(client: SupabaseClient): Promise<SpotSeed[]
     nameJa: row.name_ja,
     latitude: row.latitude,
     longitude: row.longitude,
+    offshoreDirectionDeg: offshoreDirectionForSpot(row.id),
     sortOrder: row.sort_order,
   }));
 }
@@ -329,6 +335,7 @@ export async function getDashboardData(): Promise<DashboardData> {
             nameJa: spot.name_ja,
             latitude: spot.latitude,
             longitude: spot.longitude,
+            offshoreDirectionDeg: offshoreDirectionForSpot(spot.id),
             sortOrder: spot.sort_order,
           }))
         : SPOT_SEEDS;

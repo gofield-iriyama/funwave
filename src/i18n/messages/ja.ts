@@ -1,7 +1,7 @@
 export const ja = {
   appTitle: "四国サーフコンディション",
-  appSubtitle: "小松・生見・浮鞭の今日の波を、レベル別に判定します",
-  levelLabel: "レベル",
+  appSubtitle: "小松・生見・浮鞭の今日の波を、ボード別に判定します",
+  levelLabel: "ボード",
   spotLabel: "スポット",
   decisionGo: "行ける",
   decisionTough: "厳しい",
