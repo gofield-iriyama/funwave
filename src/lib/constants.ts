@@ -8,7 +8,7 @@ export const SPOT_SEEDS: SpotSeed[] = [
     nameJa: "小松",
     latitude: 34.085,
     longitude: 134.613,
-    offshoreDirectionDeg: 350,
+    offshoreDirectionDeg: 320,
     sortOrder: 1,
   },
   {
@@ -16,7 +16,7 @@ export const SPOT_SEEDS: SpotSeed[] = [
     nameJa: "生見",
     latitude: 33.558,
     longitude: 134.303,
-    offshoreDirectionDeg: 350,
+    offshoreDirectionDeg: 320,
     sortOrder: 2,
   },
   {
@@ -24,7 +24,7 @@ export const SPOT_SEEDS: SpotSeed[] = [
     nameJa: "浮鞭",
     latitude: 33.021,
     longitude: 133.078,
-    offshoreDirectionDeg: 350,
+    offshoreDirectionDeg: 335,
     sortOrder: 3,
   },
 ];

@@ -45,16 +45,16 @@ function windDirectionScore(spotId: string, windDirectionDeg: number): number {
   if (onshoreDiff <= 25) {
     return 0;
   }
-  if (offshoreDiff <= 50) {
+  if (offshoreDiff <= 35) {
     return 1;
   }
-  if (offshoreDiff <= 80) {
-    return 0.7;
+  if (offshoreDiff <= 55) {
+    return 0.6;
   }
-  if (offshoreDiff <= 110) {
-    return 0.4;
+  if (offshoreDiff <= 75) {
+    return 0.3;
   }
-  return 0.2;
+  return 0.1;
 }
 
 function statusFromScore(score: number, hardFail: boolean): SurfStatus {
@@ -65,7 +65,7 @@ function statusFromScore(score: number, hardFail: boolean): SurfStatus {
     return "tough";
   }
 
-  return score >= 2.2 ? "go" : "tough";
+  return score >= 2.3 ? "go" : "tough";
 }
 
 function reasonFor(level: SurfLevel, slot: SlotAggregate, score: number, hardFail: boolean): string {
