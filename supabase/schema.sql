@@ -57,6 +57,11 @@ create table if not exists spot_runtime_status (
   updated_at timestamptz not null default now()
 );
 
+alter table if exists public.spots enable row level security;
+alter table if exists public.forecast_slots enable row level security;
+alter table if exists public.daily_evaluations enable row level security;
+alter table if exists public.spot_runtime_status enable row level security;
+
 insert into spots (id, name_ja, latitude, longitude, sort_order)
 values
   ('komatsu',  '小松', 34.085, 134.613, 1),

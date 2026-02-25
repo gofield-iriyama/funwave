@@ -40,6 +40,7 @@ npm run check:env
 既存環境を更新する場合は、追加で以下を実行してください。
 
 - `supabase/migrations/20260215_add_mellow_status.sql`
+- `supabase/migrations/20260215_enable_rls_public_tables.sql`
 
 5. 開発サーバー起動
 
