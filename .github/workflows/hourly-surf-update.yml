@@ -45,9 +45,25 @@ jobs:
           const fs = require("node:fs");
           const path = process.argv[1];
           const data = JSON.parse(fs.readFileSync(path, "utf8"));
-          if (!data.ok) {
-            console.error("Update response ok=false");
+          const results = Array.isArray(data.results) ? data.results : [];
+          const successCount = results.filter((row) => row && row.ok).length;
+          const failed = results.filter((row) => row && !row.ok);
+
+          if (results.length === 0) {
+            console.error("Update response has no results");
             process.exit(1);
+          }
+
+          if (successCount === 0) {
+            console.error("All spots failed");
+            process.exit(1);
+          }
+
+          if (failed.length > 0) {
+            console.warn(
+              "Partial failure:",
+              failed.map((row) => `${row.spotId}:${row.message}`).join(", ")
+            );
           }
           ' "$response_file"
 

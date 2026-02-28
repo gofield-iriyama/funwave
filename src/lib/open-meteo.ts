@@ -22,6 +22,58 @@ interface MergedHour {
   windDirectionDeg: number;
 }
 
+const REQUEST_TIMEOUT_MS = 12_000;
+const MAX_RETRIES = 2;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function isRetryableStatus(status: number): boolean {
+  return status === 408 || status === 429 || (status >= 500 && status <= 599);
+}
+
+async function fetchWithRetry(url: string, sourceName: string): Promise<Response> {
+  let lastError: string | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(url, {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+
+      if (response.ok) {
+        return response;
+      }
+
+      if (!isRetryableStatus(response.status) || attempt === MAX_RETRIES) {
+        throw new Error(`${sourceName} 取得失敗: HTTP ${response.status}`);
+      }
+
+      lastError = `${sourceName} 一時失敗: HTTP ${response.status}`;
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      lastError = `${sourceName} 接続エラー: ${reason}`;
+
+      if (attempt === MAX_RETRIES) {
+        throw new Error(lastError);
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    await sleep(400 * (attempt + 1));
+  }
+
+  throw new Error(lastError ?? `${sourceName} の取得に失敗しました`);
+}
+
 function average(values: number[]): number {
   if (values.length === 0) {
     return 0;
@@ -129,18 +181,13 @@ function mergeHourly(weather: HourlyData, marine: HourlyData): MergedHour[] {
 }
 
 export async function fetchSpotSlots(spot: SpotSeed, dateJst: string): Promise<SlotAggregate[]> {
+  const forecastUrl = buildForecastUrl(spot, dateJst);
+  const marineUrl = buildMarineUrl(spot, dateJst);
+
   const [weatherResponse, marineResponse] = await Promise.all([
-    fetch(buildForecastUrl(spot, dateJst), { cache: "no-store" }),
-    fetch(buildMarineUrl(spot, dateJst), { cache: "no-store" }),
+    fetchWithRetry(forecastUrl, "気象API"),
+    fetchWithRetry(marineUrl, "海況API"),
   ]);
-
-  if (!weatherResponse.ok) {
-    throw new Error(`気象API取得に失敗しました (${weatherResponse.status})`);
-  }
-
-  if (!marineResponse.ok) {
-    throw new Error(`海況API取得に失敗しました (${marineResponse.status})`);
-  }
 
   const weatherData = (await weatherResponse.json()) as OpenMeteoResponse;
   const marineData = (await marineResponse.json()) as OpenMeteoResponse;
